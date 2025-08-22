@@ -39,7 +39,7 @@ namespace ChessLogic
         }
 
         //May need to swap params
-        public static Direction operator *(Direction direction, int multiplier)
+        public static Direction operator *(int multiplier, Direction direction)
         {
             return new Direction(direction.RowChange * multiplier, direction.ColumnChange * multiplier);
         }

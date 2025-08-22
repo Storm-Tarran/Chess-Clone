@@ -10,6 +10,19 @@ namespace ChessLogic
     {
         public override PieceType Type => PieceType.Queen;
         public override Player Color { get; }
+
+        private static readonly Direction[] dirs = new Direction[]
+        {
+            Direction.North,
+            Direction.South,
+            Direction.East,
+            Direction.West,
+            Direction.NorthEast,
+            Direction.NorthWest,
+            Direction.SouthEast,
+            Direction.SouthWest
+        };
+
         public Queen(Player color)
         {
             Color = color;
@@ -19,6 +32,12 @@ namespace ChessLogic
             Queen copy = new Queen(Color);
             copy.HasMoved = HasMoved;
             return copy;
+        }
+
+        public override IEnumerable<Move> GetMoves(Position from, Board board)
+        {
+            // Queens can move in straight lines in all four cardinal directions and diagonally
+            return MovePositionInDirections(from, board, dirs).Select(to => new Normal(from, to)); // Create a normal move for each valid position
         }
     }
 }
