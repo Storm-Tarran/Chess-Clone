@@ -10,6 +10,7 @@ namespace ChessLogic
     {
         public Board Board { get; }
         public Player CurrentPlayer { get; private set; }
+        public Result Result { get; private set; } = null;
 
         public GameState(Player player, Board board)
         {
@@ -26,13 +27,49 @@ namespace ChessLogic
             }
 
             Piece piece = Board[pos];
-            return piece.GetMoves(pos, Board);
+            IEnumerable<Move> moveCandidates = piece.GetMoves(pos, Board);
+            return moveCandidates.Where(move => move.IsLeagal(Board));
         }
 
         public void MakeMove(Move move)
         {
             move.Execute(Board);
             CurrentPlayer = CurrentPlayer.Opponent();
+            CheckForGameEnd();
+
+        }
+
+        public IEnumerable<Move> AllLegalMoves(Player player)
+        {
+            IEnumerable<Move> moveCandidates = Board.PiecePositionsFor(player).SelectMany(pos =>
+            {
+                Piece piece = Board[pos];
+                return piece.GetMoves(pos, Board);
+            });
+
+            //Return only legal moves, filtering out illegal ones
+            return moveCandidates.Where(move => move.IsLeagal(Board));
+        }
+
+        // PROBLEM IS HERE
+        public void CheckForGameEnd()
+        {
+            if(!AllLegalMoves(CurrentPlayer).Any())
+            {
+                if(Board.IsInCheck(CurrentPlayer))
+                {
+                    Result = Result.Win(CurrentPlayer.Opponent());
+                }
+                else
+                {
+                    Result = Result.Draw(EndReason.Stalemate);
+                }
+            }
+        }
+
+        public bool IsGameOver()
+        {
+            return Result != null;
         }
 
     }

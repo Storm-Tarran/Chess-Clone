@@ -29,6 +29,7 @@
                          RenderOptions.BitmapScalingMode="HighQuality"/>
 
 
+            <ContentControl x:Name="MenuContainer"/>
         </Grid>
     </Viewbox>
    

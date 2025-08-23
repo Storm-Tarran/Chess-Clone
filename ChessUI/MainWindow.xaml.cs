@@ -70,6 +70,12 @@ namespace ChessUI
 
         private void BoardGrid_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if(IsMenuOnScreen())
+            {
+                //Ignore clicks when menu is on screen
+                return;
+            }
+
             //Called when player clicks on the board
             Point point = e.GetPosition(BoardGrid);
             Position pos = ToSquarePosition(point);
@@ -111,9 +117,34 @@ namespace ChessUI
 
             if(moveCache.TryGetValue(pos, out Move move))
             {
-                HandelMove(move);
+                if(move.Type == MoveType.Promotion)
+                {
+                    HandelPromotion(move.FromPos, move.ToPos);
+                }
+                else
+                { 
+                    HandelMove(move);
+                }
+
             }
-            moveCache.Clear();
+            //moveCache.Clear();
+        }
+
+        private void HandelPromotion(Position from, Position to)
+        {
+            //CHECK
+            chessboardImages[to.Row, to.Column].Source = Images.GetImageSource(gameState.CurrentPlayer, PieceType.Pawn);
+            chessboardImages[from.Row, from.Column].Source = null;
+
+            PromotionMenu promotionMenu = new PromotionMenu(gameState.CurrentPlayer);
+            MenuContainer.Content = promotionMenu;
+
+            promotionMenu.PieceSelected += type =>
+            {
+                MenuContainer.Content = null;
+                Move promotionMove = new PawnPromotion(from, to, type);
+                HandelMove(promotionMove);
+            };
         }
 
         private void HandelMove(Move move)
@@ -122,6 +153,11 @@ namespace ChessUI
             gameState.MakeMove(move);
             DrawBoard(gameState.Board);
             SetCursor(gameState.CurrentPlayer);
+
+            if(gameState.IsGameOver())
+            {
+                ShowGameOver();
+            }
         }
 
         private void CacheMoves(IEnumerable<Move> moves)
@@ -162,6 +198,39 @@ namespace ChessUI
             {
                 Cursor = ChessCursors.BlackCursor;
             }
+        }
+
+        private bool IsMenuOnScreen()
+        {
+            return MenuContainer.Content != null;
+        }
+
+        private void ShowGameOver()
+        {
+            GameOverMenu gameOverMenu = new GameOverMenu(gameState);
+            MenuContainer.Content = gameOverMenu;
+
+            gameOverMenu.OptionSelected += option =>
+            {
+                if (option == Option.Restart)
+                {
+                    MenuContainer.Content = null;
+                    RestartGame();
+                }
+                else
+                {
+                    Application.Current.Shutdown();
+                }
+            };
+        }
+
+        private void RestartGame()
+        {
+            ClearHighlights();
+            moveCache.Clear();
+            gameState = new GameState(Player.White, Board.Initial());
+            DrawBoard(gameState.Board);
+            SetCursor(gameState.CurrentPlayer);
         }
     }
 }

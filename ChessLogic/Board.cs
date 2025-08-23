@@ -69,5 +69,48 @@ namespace ChessLogic
             //    throw new ArgumentOutOfRangeException(nameof(position), "Position is outside the board boundaries.");
             return this[position] == null;
         }
+
+        public IEnumerable<Position> PiecePositions()
+        {
+            for(int row = 0; row < 8; row++)
+            {
+                for (int col = 0; col < 8; col++)
+                {
+                    Position position = new Position(row, col);
+
+                    if (!IsEmpty(position))
+                    {
+                        yield return position;
+                    }
+                }
+            }
+        }
+
+        public IEnumerable<Position> PiecePositionsFor(Player player)
+        {
+            return PiecePositions().Where(pos => this[pos].Color == player);
+        }
+
+        //CHECK METHOD
+        public bool IsInCheck(Player player)
+        {
+            return PiecePositionsFor(player.Opponent()).Any(pos =>
+            {
+                Piece piece = this[pos];
+                return piece.CanCaptureOppKing(pos, this);
+            });
+        }
+
+        //copy board
+        public Board Copy()
+        {
+            Board copy = new Board();
+            foreach(Position pos in PiecePositions())
+            {
+                copy[pos] = this[pos].Copy();
+            }
+
+            return copy;
+        }
     }
 }
