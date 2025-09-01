@@ -37,10 +37,12 @@ namespace ChessLogic
             }
         }
 
-        public override void Execute(Board board)
+        public override bool Execute(Board board)
         {
             new Normal(FromPos, ToPos).Execute(board);
             new Normal(rookFromPostion, rookToPostion).Execute(board);
+
+            return false;
         }
 
         public override bool IsLeagal(Board board)

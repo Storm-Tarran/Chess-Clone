@@ -19,13 +19,16 @@ namespace ChessLogic
             ToPos = to;
         }
 
-        public override void Execute(Board board)
+        public override bool Execute(Board board)
         {
             //Move the piece from one position to another
             Piece piece = board[FromPos];
+            bool caputure = !board.IsEmpty(ToPos);
             board[ToPos] = piece;
             board[FromPos] = null; // Clear the original position
             piece.HasMoved = true; // Mark the piece as moved
+
+            return caputure || piece.Type == PieceType.Pawn;
         }
     }
 }

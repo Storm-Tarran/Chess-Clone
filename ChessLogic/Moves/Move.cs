@@ -12,7 +12,7 @@ namespace ChessLogic
         public abstract MoveType Type { get; }
         public abstract Position FromPos { get; }
         public abstract Position ToPos { get; }
-        public abstract void Execute(Board board);
+        public abstract bool Execute(Board board);
 
         //May change for computer players later (AI)
         public virtual bool IsLeagal(Board board)
@@ -20,7 +20,8 @@ namespace ChessLogic
             Player player = board[FromPos].Color;
             Board copy = board.Copy();
             Execute(copy);
-            return !board.IsInCheck(player);
+            //return !board.IsInCheck(player);
+            return !copy.IsInCheck(player);
         }
     }
 }

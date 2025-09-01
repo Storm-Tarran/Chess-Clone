@@ -12,10 +12,18 @@ namespace ChessLogic
         public Player CurrentPlayer { get; private set; }
         public Result Result { get; private set; } = null;
 
+        private int noCaptureOrPawnMoves = 0;
+        private string stateString;
+
+        private readonly Dictionary<string, int> stateHistory = new Dictionary<string, int>();
+
         public GameState(Player player, Board board)
         {
             Board = board;
             CurrentPlayer = player;
+
+            stateString = new StateString(CurrentPlayer, board).ToString();
+            stateHistory[stateString] = 1;
         }
 
         public IEnumerable<Move> LegalMovesForPieces(Position pos)
@@ -34,8 +42,20 @@ namespace ChessLogic
         public void MakeMove(Move move)
         {
             Board.SetPawnSkipPosition(CurrentPlayer, null);
-            move.Execute(Board);
+            bool captureOrPawn = move.Execute(Board);
+
+            if(captureOrPawn)
+            {
+                noCaptureOrPawnMoves = 0;
+                stateHistory.Clear();
+            }
+            else
+            {
+                noCaptureOrPawnMoves++;
+            }
+
             CurrentPlayer = CurrentPlayer.Opponent();
+            UpdateStateString();
             CheckForGameEnd();
 
         }
@@ -66,6 +86,18 @@ namespace ChessLogic
                     Result = Result.Draw(EndReason.Stalemate);
                 }
             }
+            else if(Board.InsufficientMaterial())
+            {
+                Result = Result.Draw(EndReason.InsufficientMaterial);
+            }
+            else if(FiftyMoveRule())
+            {
+                Result = Result.Draw(EndReason.DrawByFiftyMoveRule);
+            }
+            else if(ThreeFoldRepetition())
+            {
+                Result = Result.Draw(EndReason.ThreeFoldRepetition);
+            }
         }
 
         public bool IsGameOver()
@@ -73,5 +105,29 @@ namespace ChessLogic
             return Result != null;
         }
 
+        private bool FiftyMoveRule()
+        {
+            int fullMoves = noCaptureOrPawnMoves / 2;
+            return fullMoves == 50;
+        }
+
+        private void UpdateStateString()
+        {
+            stateString = new StateString(CurrentPlayer, Board).ToString();
+
+            if(!stateHistory.ContainsKey(stateString))
+            {
+                stateHistory[stateString] = 1;
+            }
+            else
+            {
+                stateHistory[stateString]++;
+            }
+        }
+
+        private bool ThreeFoldRepetition()
+        {
+            return stateHistory[stateString] == 3;
+        }
     }
 }

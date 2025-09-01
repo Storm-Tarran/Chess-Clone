@@ -33,7 +33,7 @@ namespace ChessLogic
             };
         }
 
-        public override void Execute(Board board)
+        public override bool Execute(Board board)
         {
             Piece pawn = board[FromPos];
             board[FromPos] = null; // Remove the pawn from its original position
@@ -41,6 +41,8 @@ namespace ChessLogic
             Piece promotedPiece = CreatePromotionPiece(pawn.Color);
             promotedPiece.HasMoved = true; // The promoted piece is considered to have moved
             board[ToPos] = promotedPiece; // Place the new piece at the promotion square
+
+            return true;
         }
     }
 }
